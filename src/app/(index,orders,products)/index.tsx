@@ -1,40 +1,44 @@
 // This component is platform-specific.
 
+import { Ionicons } from "@expo/vector-icons";
 import Dashboard from "@/components/dom/dashboard";
 import { ProfileButton } from "@/components/screen-header";
-import { Stack } from "expo-router";
-
+import { router, Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
-// import * as SplashScreen from "expo-splash-screen";
+import { Pressable, View, Text } from "react-native";
+import { usePostHog } from "posthog-react-native";
 
 export default function IndexRoute() {
+  const posthog = usePostHog();
   return (
     <>
-      {process.env.EXPO_OS !== "web" && (
-        <>
-          <Stack.Screen.Title large>Dashboard</Stack.Screen.Title>
-          <Stack.SearchBar placeholder="Search" />
-          <Stack.Toolbar placement="right">
-            <Stack.Toolbar.Menu icon="bell" separateBackground>
-              <Stack.Toolbar.MenuAction icon="bell.badge">
-                New notifications
-              </Stack.Toolbar.MenuAction>
-              <Stack.Toolbar.MenuAction icon="checkmark.circle">
-                Mark all as read
-              </Stack.Toolbar.MenuAction>
-              <Stack.Toolbar.MenuAction icon="gear">
-                Notification settings
-              </Stack.Toolbar.MenuAction>
-            </Stack.Toolbar.Menu>
-
-            <Stack.Toolbar.View separateBackground>
+      {/* Cấu hình Header chuẩn SDK 54 */}
+      <Stack.Screen
+        options={{
+          title: "Dashboard",
+          headerLargeTitle: true,
+          headerRight: () => (
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <Pressable onPress={() => alert("Notification menu pressed")}>
+                <Ionicons name="notifications-outline" size={22} color="#333" />
+              </Pressable>
+              <Pressable onPress={() => router.push("/checkout")}>
+                <Ionicons name="cart-outline" size={22} color="#333" />
+              </Pressable>
+              <Pressable onPress={() => router.push("/profile")}>
+                <Ionicons name="person-outline" size={22} color="#333" />
+              </Pressable>
               <ProfileButton />
-            </Stack.Toolbar.View>
-          </Stack.Toolbar>
-        </>
-      )}
+            </View>
+          ),
+        }}
+      />
+
       <Dashboard
         notify={() => {
+          posthog?.capture("demo_alert_triggered");
           alert("New Order (from a DOM component 🚀)");
         }}
         onButtonClick={async (size: number) => {
@@ -48,14 +52,6 @@ export default function IndexRoute() {
             );
           }
         }}
-        // dom={{
-        //   onLoadEnd(event) {
-        //     // Keep the splash screen open until the DOM content has loaded.
-        //     setTimeout(() => {
-        //       SplashScreen.hideAsync();
-        //     }, 1);
-        //   },
-        // }}
       />
     </>
   );

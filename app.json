@@ -16,12 +16,8 @@
       "reactCompiler": true
     },
     "plugins": [
-      "expo-asset",
-      "expo-font",
-      "expo-image",
       "expo-router",
-      "expo-splash-screen",
-      "expo-status-bar"
+      "expo-localization"
     ],
     "name": "my-app",
     "slug": "my-app"

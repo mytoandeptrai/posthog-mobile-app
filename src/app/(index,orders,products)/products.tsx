@@ -2,44 +2,29 @@ import Products from "@/components/dom/products";
 import { ProfileButton } from "@/components/screen-header";
 import { Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, View } from "react-native";
 
 export default function ProductsRoute() {
   return (
     <>
-      {process.env.EXPO_OS !== "web" && (
-        <>
-          <Stack.Screen.Title>Products</Stack.Screen.Title>
-          <Stack.Toolbar placement="right">
-            <Stack.Toolbar.Menu icon="calendar">
-              <Stack.Toolbar.Menu inline title="Time Period">
-                <Stack.Toolbar.MenuAction>Today</Stack.Toolbar.MenuAction>
-                <Stack.Toolbar.MenuAction isOn>
-                  This Week
-                </Stack.Toolbar.MenuAction>
-                <Stack.Toolbar.MenuAction>This Month</Stack.Toolbar.MenuAction>
-                <Stack.Toolbar.MenuAction>This Year</Stack.Toolbar.MenuAction>
-              </Stack.Toolbar.Menu>
-              <Stack.Toolbar.MenuAction icon="calendar.badge.plus">
-                Custom Range
-              </Stack.Toolbar.MenuAction>
-            </Stack.Toolbar.Menu>
-            <Stack.Toolbar.Menu icon="square.and.arrow.up">
-              <Stack.Toolbar.MenuAction icon="doc.text">
-                Export as PDF
-              </Stack.Toolbar.MenuAction>
-              <Stack.Toolbar.MenuAction icon="tablecells">
-                Export as CSV
-              </Stack.Toolbar.MenuAction>
-              <Stack.Toolbar.MenuAction icon="photo">
-                Export as Image
-              </Stack.Toolbar.MenuAction>
-            </Stack.Toolbar.Menu>
-            <Stack.Toolbar.View separateBackground>
+      {/* Cấu hình Header chuẩn SDK 54 */}
+      <Stack.Screen
+        options={{
+          title: "Products",
+          headerRight: () => (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <Pressable onPress={() => alert("Calendar options pressed")}>
+                <Ionicons name="calendar-outline" size={22} color="#333" />
+              </Pressable>
+              <Pressable onPress={() => alert("Export options pressed")}>
+                <Ionicons name="share-outline" size={22} color="#333" />
+              </Pressable>
               <ProfileButton />
-            </Stack.Toolbar.View>
-          </Stack.Toolbar>
-        </>
-      )}
+            </View>
+          ),
+        }}
+      />
 
       <Products
         onButtonClick={async (size: number) => {
@@ -49,7 +34,7 @@ export default function ProductsRoute() {
                 Haptics.ImpactFeedbackStyle.Light,
                 Haptics.ImpactFeedbackStyle.Medium,
                 Haptics.ImpactFeedbackStyle.Heavy,
-              ][size],
+              ][size]
             );
           }
         }}

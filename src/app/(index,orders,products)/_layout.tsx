@@ -1,13 +1,17 @@
-import { Slot, Stack } from "expo-router";
-import { Platform, StatusBar } from "react-native";
+import { Slot, Stack, useSegments } from "expo-router";
+import { Platform } from "react-native";
+import { StatusBar } from "expo-status-bar";
 
 export const unstable_settings = {
-  anchor: "index",
-  orders: {
-    anchor: "orders",
+  initialRouteName: "index",
+  "(index)": {
+    initialRouteName: "index",
   },
-  products: {
-    anchor: "products",
+  "(orders)": {
+    initialRouteName: "orders",
+  },
+  "(products)": {
+    initialRouteName: "products",
   },
 };
 
@@ -17,65 +21,71 @@ const titles = {
   products: "Products",
 };
 
-const isIOS = Platform.OS === "ios";
-
-export default function RootLayout({ segment }: { segment: string }) {
+export default function GroupLayout() {
   if (process.env.EXPO_OS === "web") {
-    // Web doesn't need page stacking.
     return <Slot />;
   }
 
-  const name = getRouteName(segment);
+  // Tự động nhận diện Tab đang chọn: "index", "orders" hoặc "products"
+  const segments = useSegments();
+  const rawGroup = segments[0] || "(index)";
+  const currentTab = (rawGroup.replace(/[()]/g, "") || "index") as keyof typeof titles;
 
   return (
     <>
       <Stack
         screenOptions={{
           headerShadowVisible: false,
-          headerBackButtonDisplayMode: "minimal",
           ...Platform.select({
             ios: {
               headerTransparent: true,
-              headerLargeTitleShadowVisible: false,
-              headerLargeStyle: { backgroundColor: "transparent" },
               headerTitleStyle: { color: "#000000" },
-              headerBlurEffect: "none",
             },
             default: {
               headerStyle: { backgroundColor: "#FFFFFF" },
-              statusBarTranslucent: true,
-              statusBarStyle: "auto",
             },
           }),
         }}
       >
+        {/* Render đúng màn hình chính tương ứng với Tab đang active */}
         <Stack.Screen
-          name={name}
+          name={currentTab}
           options={{
-            title: titles[name],
-            ...(isIOS && name === "index"
-              ? {
-                  headerLargeTitle: true,
-                  headerSearchBarOptions: {},
-                }
-              : {}),
+            title: titles[currentTab] || "Dashboard",
+            headerLargeTitle: Platform.OS === "ios" && currentTab === "index",
           }}
         />
+
+        {/* Các màn hình Modal phụ dùng chung */}
         <Stack.Screen
           name="alert"
           options={{
+            title: "",
             contentStyle: { backgroundColor: "white" },
             presentation: "formSheet",
             sheetAllowedDetents: [0.25],
             sheetGrabberVisible: true,
           }}
         />
+        <Stack.Screen
+          name="profile"
+          options={{
+            title: "Profile",
+            contentStyle: { backgroundColor: "white" },
+            presentation: "formSheet",
+            sheetAllowedDetents: [0.5],
+            sheetGrabberVisible: true,
+          }}
+        />
+        <Stack.Screen
+          name="checkout"
+          options={{
+            title: "Checkout",
+            contentStyle: { backgroundColor: "white" },
+          }}
+        />
       </Stack>
-      <StatusBar translucent={false} barStyle={"dark-content"} />
+      <StatusBar style="dark" />
     </>
   );
-}
-
-function getRouteName(segment: string) {
-  return segment.replace(/\((.+)\)/, "$1") as keyof typeof titles;
 }

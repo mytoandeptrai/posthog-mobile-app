@@ -1,25 +1,21 @@
-import { GlassView } from "expo-glass-effect";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 export default function AlertRoute() {
   return (
     <View style={{ flex: 1, padding: 24, gap: 8 }}>
-      <Stack.Screen.Title>{""}</Stack.Screen.Title>
-
-      <Stack.Toolbar placement="right">
-        <Stack.Toolbar.Menu icon="ellipsis">
-          <Stack.Toolbar.MenuAction icon="bell.badge">
-            New notifications
-          </Stack.Toolbar.MenuAction>
-          <Stack.Toolbar.MenuAction icon="checkmark.circle">
-            Mark all as read
-          </Stack.Toolbar.MenuAction>
-          <Stack.Toolbar.MenuAction icon="gear">
-            Notification settings
-          </Stack.Toolbar.MenuAction>
-        </Stack.Toolbar.Menu>
-      </Stack.Toolbar>
+      {/* Cấu hình Header chuẩn SDK 54 */}
+      <Stack.Screen
+        options={{
+          title: "",
+          headerRight: () => (
+            <Pressable onPress={() => alert("Menu pressed")}>
+              <Ionicons name="ellipsis-horizontal" size={24} color="#333" />
+            </Pressable>
+          ),
+        }}
+      />
 
       <Text
         style={{
@@ -42,13 +38,12 @@ export default function AlertRoute() {
       </Text>
       <View style={{ flex: 1 }} />
 
-      <GlassView
-        isInteractive
-        tintColor={"#000"}
+      <Pressable
+        onPress={() => console.log("Dismiss")}
         style={{
           padding: 12,
           borderRadius: 12,
-          borderCurve: "continuous",
+          backgroundColor: "#000",
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -57,11 +52,12 @@ export default function AlertRoute() {
           style={{
             fontSize: 16,
             color: "#fff",
+            fontWeight: "600",
           }}
         >
           Dismiss
         </Text>
-      </GlassView>
+      </Pressable>
     </View>
   );
 }
