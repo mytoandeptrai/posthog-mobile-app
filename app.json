@@ -20,6 +20,9 @@
       "expo-localization"
     ],
     "name": "my-app",
-    "slug": "my-app"
+    "slug": "my-app",
+    "ios": {
+      "bundleIdentifier": "com.anonymous.my-app"
+    }
   }
 }

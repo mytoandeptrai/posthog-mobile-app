@@ -1,20 +1,24 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs, usePathname } from "expo-router";
+import * as Application from "expo-application";
+import { Stack, usePathname } from "expo-router";
 import PostHog, { PostHogProvider } from "posthog-react-native";
 import { useEffect } from "react";
-import * as Application from "expo-application";
 import { Platform } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AuthProvider } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
+import { ToastProvider } from "@/context/ToastContext";
 
-export const posthog = new PostHog(
-  process.env.EXPO_POSTHOG_API_KEY || "",
-  {
-    host: process.env.EXPO_POSTHOG_HOST || "",
-    captureAppLifecycleEvents: true,
-    enableSessionReplay: true,
-    flushAt: 10,
-    flushInterval: 30,
+export const posthog = new PostHog(process.env.EXPO_PUBLIC_POSTHOG_API_KEY || "", {
+  host: process.env.EXPO_PUBLIC_POSTHOG_HOST || "",
+  captureAppLifecycleEvents: true,
+  enableSessionReplay: true,
+  flushAt: 10,
+  flushInterval: 30,
+  sessionReplayConfig: {
+    maskAllTextInputs: true,
+    maskAllImages: false,
   },
-);
+});
 
 posthog.register({
   environment: __DEV__ ? "development" : "production",
@@ -33,56 +37,25 @@ export default function RootLayout() {
 
   return (
     <PostHogProvider client={posthog} autocapture>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: "#000000",
-          tabBarInactiveTintColor: "#999999",
-          tabBarStyle: {
-            backgroundColor: "#FFFFFF",
-          },
-        }}
-      >
-        <Tabs.Screen
-          name="(index)"
-          options={{
-            title: "Dashboard",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "home" : "home-outline"}
-                size={22}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="(orders)"
-          options={{
-            title: "Orders",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "cart" : "cart-outline"}
-                size={22}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="(products)"
-          options={{
-            title: "Products",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "cube" : "cube-outline"}
-                size={22}
-                color={color}
-              />
-            ),
-          }}
-        />
-      </Tabs>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <CartProvider>
+            <ToastProvider>
+              <Stack screenOptions={{ headerBackTitle: "Back" }}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="login"
+                  options={{ presentation: "modal", title: "Log In" }}
+                />
+                <Stack.Screen name="product/[id]" options={{ title: "" }} />
+                <Stack.Screen name="search" options={{ title: "Search" }} />
+                <Stack.Screen name="cart" options={{ title: "Cart" }} />
+                <Stack.Screen name="checkout" options={{ title: "Checkout" }} />
+              </Stack>
+            </ToastProvider>
+          </CartProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
     </PostHogProvider>
   );
 }
