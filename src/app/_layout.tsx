@@ -6,9 +6,9 @@ import * as Application from "expo-application";
 import { Platform } from "react-native";
 
 export const posthog = new PostHog(
-  "phc_oPFarYMtsgqThc7HZszyKXCWRd2yNmV37LjnQygPrg3s",
+  process.env.EXPO_POSTHOG_API_KEY || "",
   {
-    host: "https://us.i.posthog.com",
+    host: process.env.EXPO_POSTHOG_HOST || "",
     captureAppLifecycleEvents: true,
     enableSessionReplay: true,
     flushAt: 10,
