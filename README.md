@@ -1,44 +1,62 @@
 # my-app
 
-An [Expo Router](https://docs.expo.dev/router/introduction/) app with a tab-based dashboard/orders/products flow. Screens on native use React Native + `expo-router`, while their content is rendered via [Expo DOM Components](https://docs.expo.dev/guides/dom-components) so the UI can be built once with React DOM and [shadcn/ui](https://ui.shadcn.com/) (Tailwind CSS v4).
+A pure React Native [Expo Router](https://docs.expo.dev/router/introduction/) app — a small e-commerce demo built to learn how [PostHog](https://posthog.com/) product analytics works in React Native (`posthog-react-native`): screen tracking, custom events, `identify`/`reset`, and feature flags.
+
+There is no WebView / DOM-component layer. Every screen is native (`View`, `Text`, `Pressable`, `FlatList`, ...), styled with plain `StyleSheet`. All data is local/mock — there is no backend; login and checkout are simulated with `setTimeout`.
 
 ## Stack
 
-- **Expo SDK 54** (`expo-router`, `expo-dev-client`) — see `AGENTS.md`, docs pinned to [v54](https://docs.expo.dev/versions/v54.0.0/)
-- **React 19** / **React Native 0.81** / **React Native Web**
-- **DOM Components** (`"use dom"`) for shadcn-styled screens — Tailwind, PostCSS, autoprefixer configured for the `/src` root
-- **PostHog** (`posthog-react-native`) for analytics/session replay
-- **Recharts**, **@tanstack/react-table**, **@dnd-kit** for the dashboard's charts, tables, and drag-and-drop
+- **Expo SDK 54** (`expo-router`, `expo-dev-client`)
+- **React 19** / **React Native 0.81**
+- **PostHog** (`posthog-react-native`) — analytics, session replay, feature flags
+- **React Context** for state (`CartContext`, `AuthContext`, `ToastContext`) — no external state library
+- **`@react-native-async-storage/async-storage`** — required by PostHog for persistence, and used to remember whether onboarding has been completed
+
+## App flow
+
+```
+Onboarding (first launch only) ──▶ Home / Search ──▶ Product Detail ──▶ Cart ──▶ Checkout ──▶ Home
+                                        │                                              │
+                                        └──▶ Profile ──▶ Login (modal)                 └─▶ replace, not push
+```
+
+- **Onboarding** (`src/app/onboarding.tsx`) shows once per device (flag stored in AsyncStorage), then routes into the tab navigator.
+- **Home** and **Profile** are the two tabs (`src/app/(tabs)/`); Search, Product Detail, Cart, Checkout, and the Login modal are pushed from the root stack.
+- Completing checkout uses `router.replace('/(tabs)')` so the user can't navigate Back into a finished order.
+
+## PostHog integration
+
+- Client + `PostHogProvider` setup: `src/app/_layout.tsx`.
+- Custom events: `product_list_viewed`, `product_searched`, `product_detail_viewed`, `cart_item_added`, `checkout_started`, `order_completed`, `app_error_triggered`, `onboarding_viewed` / `onboarding_completed` / `onboarding_skipped`.
+- Feature flags: `show-promo-banner` (Home banner) and `checkout-v2` (adds a discount-coupon field to Checkout) — both need to exist in your PostHog project to activate. Active flags are listed on the Profile screen.
+- Identity: `login.tsx` calls `posthog.identify(...)` on demo login; Profile's Logout calls `posthog.reset()`.
 
 ## Project structure
 
 ```
 src/
-  app/                          # expo-router routes
-    _layout.tsx                 # root Tabs layout (Dashboard / Orders / Products) + PostHog init
-    _layout.web.tsx             # web-specific root layout
-    (index,orders,products)/    # shared array-group: one Stack layout for all three tabs
-      _layout.tsx                #   picks the active tab's Stack + shared modals
-      index.tsx | orders.tsx | products.tsx  # tab entry screens
-      checkout.tsx | profile.tsx | alert.tsx  # modal/formSheet screens
-  components/
-    dom/                        # "use dom" screens (dashboard, orders, products, checkout, profile, shad-nav/layout)
-    ui/                         # shadcn/ui primitives (button, card, table, sidebar, sheet, ...)
-    *.tsx                       # native-facing helpers (screen-header, global-button-haptics, ...)
-  data/data.json                 # sample data for the dashboard/table
-  hooks/, lib/                   # shared hooks and utils (cn/tailwind-merge, etc.)
-  global.css                     # Tailwind entrypoint for DOM components
+  app/                    # expo-router routes
+    _layout.tsx            # PostHog + Auth/Cart/Toast providers, root Stack, onboarding gate
+    onboarding.tsx          # first-launch intro slides
+    (tabs)/                 # Home, Profile
+    login.tsx | search.tsx | product/[id].tsx | cart.tsx | checkout.tsx
+  context/                # CartContext, AuthContext, ToastContext
+  components/             # ProductCard, CartItemRow, CartButton, ui/ (Button, Card, Badge, Input), ...
+  data/                   # products.ts (mock catalog), onboarding.ts (slide content)
+  lib/theme.ts            # shared colors/spacing/radius tokens
 ```
 
 ## Getting started
 
 ```sh
 pnpm install
-cp .env.example .env   # fill in EXPO_POSTHOG_API_KEY / EXPO_POSTHOG_HOST if you want analytics
+cp .env.example .env   # fill in EXPO_PUBLIC_POSTHOG_API_KEY / EXPO_PUBLIC_POSTHOG_HOST
 pnpm start              # or: pnpm ios / pnpm android / pnpm web
 ```
 
-Adding a new shadcn component follows the standard CLI: `npx shadcn@latest add accordion`.
+Env vars must be prefixed `EXPO_PUBLIC_` to be readable from client code (Expo only inlines that prefix into the app/browser bundle).
+
+To run on a physical iOS device: `npx expo run:ios --device`. This requires CocoaPods (first run downloads/resolves all native pods and can take a while) and at least one iOS Simulator runtime installed in Xcode (Settings → Components) even when targeting a real device — Expo CLI checks for one regardless.
 
 ## Deploy
 
