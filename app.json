@@ -5,7 +5,8 @@
     "userInterfaceStyle": "light",
     "android": {
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.mytoandn.myapp"
     },
     "web": {
       "bundler": "metro",
@@ -22,7 +23,7 @@
     "name": "my-app",
     "slug": "my-app",
     "ios": {
-      "bundleIdentifier": "com.anonymous.my-app"
+      "bundleIdentifier": "com.mytoandn.myapp"
     }
   }
 }
